@@ -65,6 +65,8 @@ router.get('/', authByToken(false), async (req, res) => {
     },
   });
 
+  const followingIds = following.map((o) => o['id']);
+
   const output = [];
   for (const article of articles) {
     output.push({
@@ -75,13 +77,13 @@ router.get('/', authByToken(false), async (req, res) => {
       tagList: article.tags.map((tag) => tag['name']),
       createdAt: article.createdAt,
       updatedAt: article.updatedAt,
-      favorited: article.favoritedBy.indexOf(id) > 0,
+      favorited: article.favoritedBy.map((o) => o['id']).indexOf(id) >= 0,
       favoritesCount: article.favoritedBy.length,
       author: {
         username: article.author.name,
         bio: article.author.bio,
         image: article.author.image,
-        following: following.indexOf(article.authorId) > 0,
+        following: followingIds.indexOf(article.authorId) >= 0,
       },
     });
   }
