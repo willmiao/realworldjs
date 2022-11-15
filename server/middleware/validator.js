@@ -15,6 +15,14 @@ validation.set('register', [
   body('user.username').exists(),
 ]);
 
+validation.set('createArticle', [
+  body('article.title').exists(),
+  body('article.description').exists(),
+  body('article.body').exists(),
+]);
+
+validation.set('addComment', [body('comment.body').exists()]);
+
 function validationHandler(req, res, next) {
   const errors = validationResult(req);
 
