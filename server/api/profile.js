@@ -56,7 +56,7 @@ router.get('/:username', authByToken(false), async (req, res) => {
 
 router.post('/:username/follow', authByToken(), async (req, res) => {
   const username = req.params.username;
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
       name: username,
     },
@@ -93,7 +93,7 @@ router.post('/:username/follow', authByToken(), async (req, res) => {
 
 router.delete('/:username/follow', authByToken(), async (req, res) => {
   const username = req.params.username;
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
       name: username,
     },

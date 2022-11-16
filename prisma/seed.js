@@ -11,6 +11,7 @@ const userData = [
     articles: {
       create: [
         {
+          slug: 'how-to-walk-a-cat',
           title: 'how to walk a cat',
           description: 'show you how to walk a cat',
           content: 'cat is cute',
@@ -33,6 +34,7 @@ const userData = [
     articles: {
       create: [
         {
+          slug: 'keep-learning',
           title: 'keep learning',
           description: 'happy learing',
           content: 'happy codding',
