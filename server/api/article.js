@@ -51,22 +51,87 @@ router.get('/', authByToken(false), async (req, res) => {
     take: take,
   });
 
-  const { id, following } = await prisma.user.findFirst({
+  let id;
+  let followingIds;
+
+  if (req.credential) {
+    const result = await prisma.user.findUnique({
+      where: {
+        email: req.credential,
+      },
+      select: {
+        id: true,
+        following: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    id = result.id;
+    followingIds = result.following.map((o) => o['id']);
+  }
+
+  res.json({ articles: articleOutput(articles, id, followingIds) });
+});
+
+router.get('/feed', authByToken(), async (req, res) => {
+  const { limit, offset } = req.query;
+
+  const take = limit ? Number(limit) : 20;
+  const skip = offset ? Number(offset) : 0;
+
+  let id;
+  let followingIds;
+
+  if (req.credential) {
+    const result = await prisma.user.findUnique({
+      where: {
+        email: req.credential,
+      },
+      select: {
+        id: true,
+        following: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+
+    id = result.id;
+    followingIds = result.following.map((o) => o['id']);
+  }
+
+  const articles = await prisma.article.findMany({
     where: {
-      email: req.credential,
+      authorId: { in: followingIds },
     },
-    select: {
-      id: true,
-      following: {
+    include: {
+      tags: {
+        select: {
+          name: true,
+        },
+      },
+      favoritedBy: {
         select: {
           id: true,
         },
       },
+      author: true,
     },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    skip: skip,
+    take: take,
   });
 
-  const followingIds = following.map((o) => o['id']);
+  res.json({ articles: articleOutput(articles, id, followingIds, true) });
+});
 
+function articleOutput(articles, myId, myFollowingIds, following = false) {
   const output = [];
   for (const article of articles) {
     output.push({
@@ -77,21 +142,23 @@ router.get('/', authByToken(false), async (req, res) => {
       tagList: article.tags.map((tag) => tag['name']),
       createdAt: article.createdAt,
       updatedAt: article.updatedAt,
-      favorited: article.favoritedBy.map((o) => o['id']).indexOf(id) >= 0,
+      favorited: myId
+        ? article.favoritedBy.map((o) => o['id']).indexOf(myId) >= 0
+        : false,
       favoritesCount: article.favoritedBy.length,
       author: {
         username: article.author.name,
         bio: article.author.bio,
         image: article.author.image,
-        following: followingIds.indexOf(article.authorId) >= 0,
+        following: myFollowingIds
+          ? myFollowingIds.indexOf(article.authorId) >= 0
+          : following,
       },
     });
   }
 
-  res.json({ articles: output });
-});
-
-router.get('/feed', authByToken(), async (req, res) => {});
+  return output;
+}
 
 router.get('/:slug', async (req, res) => {});
 
