@@ -3,7 +3,9 @@ const errorResponse = require('../utils/errors');
 
 function authByToken(required = true) {
   return (req, res, next) => {
-    const token = req.get('Authorization');
+    const token = req.get('Authorization')
+      ? req.get('Authorization').replace(/^Token /, '')
+      : '';
 
     jwt.verify(token, process.env.JWT_PRIVATE_KEY, (err, decoded) => {
       if (err) {

@@ -77,7 +77,10 @@ router.get('/', authByToken(false), async (req, res) => {
     followingIds = result.following.map((o) => o['id']);
   }
 
-  res.json({ articles: articleOutput(articles, id, followingIds) });
+  res.json({
+    articles: articleOutput(articles, id, followingIds),
+    articlesCount: articles.length,
+  });
 });
 
 /**
@@ -135,7 +138,10 @@ router.get('/feed', authByToken(), async (req, res) => {
     take: take,
   });
 
-  res.json({ articles: articleOutput(articles, id, followingIds, true) });
+  res.json({
+    articles: articleOutput(articles, id, followingIds, true),
+    articlesCount: articles.length,
+  });
 });
 
 function articleOutput(articles, myId, myFollowingIds, following = false) {
@@ -145,7 +151,7 @@ function articleOutput(articles, myId, myFollowingIds, following = false) {
       slug: article.slug,
       title: article.title,
       description: article.description,
-      body: article.body,
+      body: article.content,
       tagList: article.tags.map((tag) => tag['name']),
       createdAt: article.createdAt,
       updatedAt: article.updatedAt,
@@ -276,7 +282,9 @@ router.put('/:slug', authByToken(), async (req, res) => {
 
   // authorization
   // check if current user is the author of the article
-  const authorEmail = await prisma.article.findUnique({
+  const {
+    author: { email: authorEmail },
+  } = await prisma.article.findUnique({
     where: {
       slug: slug,
     },
@@ -307,7 +315,7 @@ router.put('/:slug', authByToken(), async (req, res) => {
   }
 
   if (body) {
-    data.body = body;
+    data.content = body;
   }
 
   const updated = await prisma.article.update({
@@ -425,7 +433,7 @@ router.post(
         id: newComment.id,
         createdAt: newComment.createdAt,
         updatedAt: newComment.updatedAt,
-        body: newComment.connect,
+        body: newComment.content,
         author: {
           username: newComment.author.name,
           bio: newComment.author.bio,

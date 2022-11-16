@@ -77,6 +77,8 @@ router.post('/', validator('register'), async (req, res) => {
       email: email,
       token: token,
       username: username,
+      bio: null,
+      image: null,
     },
   });
 });
